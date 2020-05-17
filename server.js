@@ -87,6 +87,7 @@ require('./app/routesPages.js')(app, connection, passport);
 require('./app/routesItemsMenu.js')(app, connection, passport);
 require('./app/routesMultimedia.js')(app, connection, passport);
 require('./app/routesModules.js')(app, connection, passport);
+require('./app/routesNoticias.js')(app, connection, passport);
 
 /////////////////////
 //para development
