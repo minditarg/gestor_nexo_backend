@@ -100,7 +100,7 @@ module.exports = function (app, connection, passport) {
             connection.query("CALL modules_order(?)", [[arrayOrder[index], index]], function (err, result) {
                 if (err) return res.status(500).send(err);
 
-                if (arrayOrder.length > index)
+                if (arrayOrder.length > index + 1)
                     recorrerArrayOrder(index + 1, arrayOrder, callback)
                 else
                     callback(result);
