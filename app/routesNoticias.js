@@ -21,6 +21,22 @@ module.exports = function (app, connection, passport) {
 
   });
 
+
+  app.get('/list-mis-noticias/:idNoticia', function (req, res) {
+    let idUser = (req.user && req.user.id) || null;
+    let idNoticia = parseInt(req.params.idNoticia);
+    try {
+      connection.query("CALL mis_noticias_detail(?)", [[idNoticia, idUser]], function (err, result) {
+        if (err) return res.status(500).send(err);
+        res.json({ success: 1, noticia: result[0], tags: result[1] });
+
+      })
+    } catch (e) {
+      return res.status(500).send(e.message)
+    }
+
+  });
+
   app.get('/list-noticias', function (req, res) {
 
     try {
@@ -35,6 +51,28 @@ module.exports = function (app, connection, passport) {
     }
 
   });
+
+
+  app.get('/list-mis-noticias-bytipo/:idTipoNoticia', function (req, res) {
+    let idUser = (req.user && req.user.id) || null;
+    let idTipoNoticia = parseInt(req.params.idTipoNoticia);
+
+    console.log(req.user);
+
+
+    try {
+      connection.query("CALL mis_noticias_list_bytipo(?)", [[idTipoNoticia, idUser]], function (err, result) {
+        if (err) return res.status(500).send(err);
+
+        res.json({ success: 1, result: result[0] });
+
+      })
+    } catch (e) {
+      return res.status(500).send(e.message)
+    }
+
+  });
+
 
 
   app.get('/list-noticias-bytipo/:idTipoNoticia', function (req, res) {
@@ -72,7 +110,7 @@ module.exports = function (app, connection, passport) {
 
 
     try {
-      connection.query("CALL noticias_insert(?)", [[nombre, descripcion, idTipoNoticia, idTipoCategoria, idUser, fechaInicio,fechaFinalizacion, contenido, estado,destacado,principal]], function (err, resultInsert) {
+      connection.query("CALL noticias_insert(?)", [[nombre, descripcion, idTipoNoticia, idTipoCategoria, idUser, fechaInicio, fechaFinalizacion, contenido, estado, destacado, principal]], function (err, resultInsert) {
         if (err) return res.status(500).send(err.sqlMessage);
         if (tags.length > 0) {
 
@@ -116,7 +154,6 @@ module.exports = function (app, connection, passport) {
     let nombre = req.body.nombre || null;
     let descripcion = req.body.descripcion || null;
     let idTipoNoticia = req.body.idTipoNoticia || null;
-    let idUser = (req.user && req.user.id) || null;
     let fechaInicio = req.body.fechaInicio || null;
     let fechaFinalizacion = req.body.fechaFinalizacion || null;
     let contenido = req.body.contenido || null;
@@ -128,7 +165,7 @@ module.exports = function (app, connection, passport) {
 
     let tags = req.body.tags || [];
     try {
-      connection.query("CALL noticias_update(?)", [[idNoticia, nombre, descripcion, idTipoNoticia, idTipoCategoria, idUser,fechaInicio, fechaFinalizacion, contenido, estado,destacado,principal]], function (err, resultUpdate) {
+      connection.query("CALL noticias_update(?)", [[idNoticia, nombre, descripcion, idTipoNoticia, idTipoCategoria, fechaInicio, fechaFinalizacion, contenido, estado, destacado, principal]], function (err, resultUpdate) {
         if (err) return res.status(500).send(err.sqlMessage);
 
         connection.query("DELETE FROM tags WHERE id_noticia = ?", [idNoticia], function (err, resultDelete) {
@@ -153,12 +190,64 @@ module.exports = function (app, connection, passport) {
   });
 
 
+  app.post('/update-mi-noticia', bodyJson, function (req, res) {
+    let idNoticia = req.body.id || null;
+
+    let nombre = req.body.nombre || null;
+    let descripcion = req.body.descripcion || null;
+    let idTipoNoticia = req.body.idTipoNoticia || null;
+    let idUser = (req.user && req.user.id) || null;
+    let idUserType = (req.user && req.user.id_users_type) || null;
+    let fechaInicio = req.body.fechaInicio || null;
+    let fechaFinalizacion = req.body.fechaFinalizacion || null;
+    let contenido = req.body.contenido || null;
+    let estado = req.body.estado || null;
+    let idTipoCategoria = req.body.idTipoCategoria || null;
+    let destacado = req.body.destacado || null;
+    let principal = req.body.principal || null;
 
 
-  app.post('/delete-noticia', bodyJson, function (req, res) {
-
+    let tags = req.body.tags || [];
     try {
-      connection.query("CALL noticias_delete(?)", [[req.body.id]], function (err, result) {
+
+      connection.query("SELECT * FROM noticias n LEFT JOIN users u ON u.id = n.id_user WHERE n.id = ? AND u.id_users_type = ?", [idNoticia, idUserType], function (err, resultSelect) {
+
+        if (!resultSelect.length)
+          return res.status(500).send("no esta autorizado para modificar la noticia");
+
+
+        connection.query("CALL noticias_update(?)", [[idNoticia, nombre, descripcion, idTipoNoticia, idTipoCategoria, idUser, fechaInicio, fechaFinalizacion, contenido, estado, destacado, principal]], function (err, resultUpdate) {
+          if (err) return res.status(500).send(err.sqlMessage);
+
+          connection.query("DELETE FROM tags WHERE id_noticia = ?", [idNoticia], function (err, resultDelete) {
+            if (tags.length > 0) {
+              recorrerArrayTags(0, tags, idNoticia, function (err, result) {
+
+              });
+            }
+          })
+
+
+
+          res.json({ success: 1, resultUpdate });
+
+
+
+        })
+
+      })
+    } catch (e) {
+      return res.status(500).send(e.message)
+    }
+
+  });
+
+
+
+  app.post('/delete-mi-noticia', bodyJson, function (req, res) {
+    let idUser = (req.user && req.user.id) || null;
+    try {
+      connection.query("CALL mis_noticias_delete(?)", [[req.body.id, idUser]], function (err, result) {
         if (err) return res.status(500).send(err.sqlMessage);
 
         res.json({ success: 1, result });
@@ -176,7 +265,7 @@ module.exports = function (app, connection, passport) {
       connection.query("CALL noticias_insert_image(?)", [[extension]], function (err, result) {
         if (err) return res.status(500).send(err.sqlMessage);
 
-        res.json({ success: 1, result:result[0] });
+        res.json({ success: 1, result: result[0] });
 
       })
     } catch (e) {
@@ -217,10 +306,10 @@ module.exports = function (app, connection, passport) {
   });
 
 
-  app.post('/list-noticias-in',bodyJson, function (req, res) {
-  let queryIn = req.body.queryIn
+  app.post('/list-noticias-in', bodyJson, function (req, res) {
+    let queryIn = req.body.queryIn
     try {
-      connection.query("SELECT * FROM noticias WHERE id IN (?)",[queryIn], function (err, result) {
+      connection.query("SELECT * FROM noticias WHERE id IN (?)", [queryIn], function (err, result) {
         if (err) return res.status(500).send(err);
 
         res.json({ success: 1, result });
