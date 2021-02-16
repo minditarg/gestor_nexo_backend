@@ -25,6 +25,32 @@ var storage = multer.diskStorage({
 var upload = multer({ storage: storage }).single('userPhoto');
 
 
+var storageNoticia = multer.diskStorage({
+  destination: function (req, file, callback) {
+    let { id_noticia } = req.body;
+
+    if(id_noticia){
+      mkdirp.sync(path.join(__dirname, '../' + process.env.UPLOAD_PATH + '/noti/' + id_noticia));
+      callback(null, './' + process.env.UPLOAD_PATH + '/noti/' + id_noticia);
+    }
+    else {
+      callback(new Error("No se encuentra el id de la noticia"),false);
+    }  
+    
+  },
+  filename: function (req, file, callback) {
+    let regular1 = /[\s]/gi; //selecciona los espacios
+    let regular2 = /[^a-z0-9_.-]/gi //selecciona los caracteres que no son ni letras números  _-.
+
+    let nombre = file.originalname;
+
+    nombre = nombre.replace(regular1,"_").replace(regular2,"");
+
+    callback(null, nombre);
+  }
+});
+//var upload = multer({dest:'uploads/'});
+var uploadNoticia = multer({ storage: storageNoticia }).single('userFile');
 
 module.exports = function (app, connection, passport) {
 
@@ -163,6 +189,34 @@ module.exports = function (app, connection, passport) {
 
   });
 
+
+
+  app.post('/insert-noticia-file', function (req, res) {
+
+    
+    uploadNoticia(req, res, async function (err) {
+      if (err) return res.status(500).send(err);
+
+ 
+          let type_file;
+          if (req.file.mimetype.indexOf('image') > -1)
+            type_file = 1
+          else
+            type_file = 2;
+    
+          connection.query("CALL files_insert(?)", [[req.file.filename, type_file]], function (err, result) {
+            if (err) return res.status(500).send(err.sqlMessage);
+    
+            res.json({ success: 1, file: req.file });
+    
+          })
+         
+
+    });
+
+
+
+  });
 
 
   app.post('/delete-file', bodyJson, function (req, res) {
