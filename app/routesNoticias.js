@@ -114,6 +114,28 @@ module.exports = function (app, connection, passport) {
   });
 
 
+  app.get('/list-videos-byquery', function (req, res) {
+    let idTipoNoticia = 5;
+    let id_categoria_personal = req.query.id_categoria_personal || null;
+    let id_categoria_transparente = req.query.id_categoria_transparente || null;
+    let fecha_inicio = req.query.fecha_inicio || null;
+    let busqueda = req.query.busqueda || null;
+   
+    try {
+      connection.query("CALL noticias_list_videos_byquery(?)", [[idTipoNoticia,id_categoria_personal,id_categoria_transparente,fecha_inicio,busqueda]], function (err, result) {
+        if (err) return res.status(500).send(err);
+
+        res.json({ success: 1, result: result[0] });
+
+      })
+    } catch (e) {
+      return res.status(500).send(e.message)
+    }
+
+
+  });
+
+
   app.post('/insert-noticia', bodyJson, function (req, res) {
     let nombre = req.body.nombre || null;
     let descripcion = req.body.descripcion || null;
