@@ -332,6 +332,39 @@ module.exports = function (app,connection, passport) {
 
 });
 
+app.post('/update-me-pass',isLoggedIn, bodyJson,checkConnection, function (req, res) {
+
+		let userId = (req.user && req.user.id) || null;
+		let oldPass = req.body.oldPass || null;
+		let newPass = bcrypt.hashSync(req.body.newPass, null, null);
+
+		let objectoUpdate = { password:newPass };
+		
+		connection.query("SELECT u.password FROM users u where u.id = ?", [userId], function (err, resultPass) {
+			if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error" });
+			
+			let password = resultPass[0].password;
+		
+			if(bcrypt.compareSync(oldPass,password)){
+			connection.query("UPDATE users SET ? where id = ?", [objectoUpdate, userId], function (err, result) {
+				if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar actualizar users" });
+				
+				res.json({ success: 1, result });
+			});
+			} else {
+				res.json({ success: 0, error_msj:"La contraseña no coincide con la actual" });
+			}
+					
+			
+		});
+
+
+		
+		
+	
+
+});
+
 	app.post('/delete-user', bodyJson,checkConnection, function (req, res) {
 
 
