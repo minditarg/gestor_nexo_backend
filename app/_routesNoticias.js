@@ -92,28 +92,6 @@ module.exports = function (app, connection, passport) {
 
   });
 
-  app.get('/list-transparente-inicial', function (req, res) {
-    let idTipoNoticia = 4;
-    let id_categoria_personal = req.query.id_categoria_personal || null;
-    let id_categoria_transparente = req.query.id_categoria_transparente || null;
-    let fecha_inicio = req.query.fecha_inicio || null;
-    let busqueda = req.query.busqueda || null;
-   
-    try {
-      connection.query("select n.*, ut.descripcion as user_type FROM noticias n inner join users u on n.id_user = u.id inner join users_type ut on ut.id = u.id_users_type where n.estado = 1 and n.id_tipo_noticia = 4 order by n.fecha_publicacion desc limit 10", null, function (err, result) {
-        if (err) return res.status(500).send(err);
-
-        res.json({ success: 1, result: result });
-
-      })
-    } catch (e) {
-      return res.status(500).send(e.message)
-    }
-
-
-  });
-
-
   app.get('/list-transparente-byquery', function (req, res) {
     let idTipoNoticia = 4;
     let id_categoria_personal = req.query.id_categoria_personal || null;
@@ -135,7 +113,7 @@ module.exports = function (app, connection, passport) {
 
   });
 
-  
+
   app.get('/list-videos-byquery', function (req, res) {
     let idTipoNoticia = 5;
     let id_categoria_personal = req.query.id_categoria_personal || null;
