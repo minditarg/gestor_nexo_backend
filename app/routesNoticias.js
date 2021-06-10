@@ -100,7 +100,7 @@ module.exports = function (app, connection, passport) {
     let busqueda = req.query.busqueda || null;
    
     try {
-      connection.query("select n.*, ut.descripcion as user_type FROM noticias n inner join users u on n.id_user = u.id inner join users_type ut on ut.id = u.id_users_type where n.estado = 1 and n.id_tipo_noticia = 4 order by n.fecha_publicacion desc limit 10", null, function (err, result) {
+      connection.query("select n.*, ut.descripcion as user_type FROM noticias n inner join users u on n.id_user = u.id inner join users_type ut on ut.id = u.id_users_type where n.estado = 1 and n.id_tipo_noticia = 4 order by n.fecha_inicio desc limit 10", null, function (err, result) {
         if (err) return res.status(500).send(err);
 
         res.json({ success: 1, result: result });
