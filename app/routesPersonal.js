@@ -164,4 +164,96 @@ module.exports = function (app,connection, passport) {
 		})
 	});
 
+    /********************************* */
+    /*CONTROL DE FALTAS*/
+    /********************************* */
+
+    app.get('/list-controlfaltas', isLoggedIn, checkConnection, function (req, res) {
+        //connection.query("SELECT * FROM control_faltas WHERE estado = 1", function (err, result) {
+        connection.query("CALL control_faltas_listar()", function (err, result) {
+            if (err) return res.json({ success: 0, error_msj: err });
+            res.json({ success: 1, result });
+        });
+    });
+
+    app.post('/insert-controlfaltas', bodyJson, checkConnection, (req, res, next) => { general.checkPermission(req, res, next, [91], connection) }, function (req, res) {
+		let id_tipo_empleado = req.body.id_tipo_empleado || null;
+        var arrayIns = [req.body.nombre, req.body.apellido, req.body.dni, req.body.telefono, req.body.direccion, id_tipo_empleado, req.body.mail, 1];
+		connection.query("CALL empleados_insertar(?)",  [arrayIns], function (err, result) {
+			if (err) return res.json({ success: 0, error_msj: err.message, err });
+			res.json({ success: 1, result });
+		})
+	});
+
+    app.post('/delete-controlfalta', bodyJson, checkConnection, function (req, res) {
+		if (req.body.id) {
+			var id = parseInt(req.body.id);
+			var objectoUpdate = { estado: 0 };
+			connection.query("UPDATE empleados SET ? where id = ?", [objectoUpdate, id], function (err, result) {
+				if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar actualizar la tabla de empleados", err });
+				res.json({ success: 1, result });
+			});
+
+		} else {
+			res.json({ success: 0, error_msj: "el id de la tabla empleados no esta ingresado" })
+
+		}
+	});
+
+    app.get('/list-controlfaltas/:id', checkConnection, function (req, res) {
+		var id = req.params.id;
+		connection.query("SELECT * FROM empleados WHERE id = ? AND estado > 0", [id], function (err, result) {
+			if (err) return res.json({ success: 0, error_msj: err });
+			res.json({ success: 1, result });
+		});
+	});
+
+	app.post('/update-controlfalta', bodyJson, checkConnection, (req, res, next) => { general.checkPermission(req, res, next, [91], connection) }, function (req, res) {
+		if (req.body.id) {
+			let id = req.body.id || null;
+			let nombre = req.body.nombre || null;
+            let apellido = req.body.apellido || null;
+            let dni = req.body.dni || null;
+            let telefono = req.body.telefono || null;
+            let direccion = req.body.direccion || null;
+            let id_tipo_empleado = req.body.id_tipo_empleado || null;
+            let mail = req.body.mail || null;
+
+			let arrayIns = [id, nombre, apellido, dni, telefono, direccion, id_tipo_empleado, mail];
+			connection.query("CALL empleados_update(?)",  [arrayIns], function (err, result) {
+				if (err) return res.json({ success: 0, error_msj: err.message, err });
+				res.json({ success: 1, result });
+			})
+		} else {
+			res.json({ success: 0, error_msj: "el id de la tabla de empleados no esta ingresado" })
+
+		}
+	});
+
+    app.get('/list-empleado', checkConnection, function (req, res) {
+
+		connection.query("SELECT * FROM empleados WHERE estado = 1", function (err, result) {
+			if (err) {
+				return res.json({ success: 0, error_msj: err });
+			}
+			else {
+
+				res.json({ success: 1, result });
+			}
+		})
+	});
+
+    app.get('/list-tipo-falta', checkConnection, function (req, res) {
+
+		connection.query("SELECT * FROM tipos_faltas WHERE estado = 1", function (err, result) {
+			if (err) {
+				return res.json({ success: 0, error_msj: err });
+			}
+			else {
+
+				res.json({ success: 1, result });
+			}
+		})
+	});
+
 }
