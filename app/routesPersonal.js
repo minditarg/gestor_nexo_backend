@@ -256,4 +256,69 @@ module.exports = function (app,connection, passport) {
 		})
 	});
 
+	/********************************* */
+    /*COMPENSATORIOS*/
+    /********************************* */
+
+    app.get('/list-compensatorios', isLoggedIn, checkConnection, function (req, res) {
+
+        connection.query("CALL compensatorios_listar()", function (err, result) {
+            if (err) return res.json({ success: 0, error_msj: err });
+            res.json({ success: 1, result });
+        });
+    });
+
+    app.post('/insert-compensatorios', bodyJson, checkConnection, (req, res, next) => { general.checkPermission(req, res, next, [91], connection) }, function (req, res) {
+		let id_empleado = req.body.id_empleado || null;
+		let horas = req.body.horas || 0;
+		let minutos = req.body.minutos || 0;
+        var arrayIns = [id_empleado, horas, minutos, req.body.fecha, 1];
+		connection.query("CALL compensatorios_insertar(?)",  [arrayIns], function (err, result) {
+			if (err) return res.json({ success: 0, error_msj: err.message, err });
+			res.json({ success: 1, result });
+		})
+	});
+
+    app.post('/delete-compensatorio', bodyJson, checkConnection, function (req, res) {
+		if (req.body.id) {
+			var id = parseInt(req.body.id);
+			var objectoUpdate = { estado: 0 };
+			connection.query("UPDATE compensatorios SET ? where id = ?", [objectoUpdate, id], function (err, result) {
+				if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar actualizar la tabla de empleados", err });
+				res.json({ success: 1, result });
+			});
+
+		} else {
+			res.json({ success: 0, error_msj: "el id de la tabla empleados no esta ingresado" })
+
+		}
+	});
+
+    app.get('/list-compensatorios/:id', checkConnection, function (req, res) {
+		var id = req.params.id;
+		connection.query("SELECT * FROM compensatorios WHERE id = ? AND estado > 0", [id], function (err, result) {
+			if (err) return res.json({ success: 0, error_msj: err });
+			res.json({ success: 1, result });
+		});
+	});
+
+	app.post('/update-compensatorio', bodyJson, checkConnection, (req, res, next) => { general.checkPermission(req, res, next, [91], connection) }, function (req, res) {
+		if (req.body.id) {
+			let id = req.body.id || null;
+			let id_empleado = req.body.id_empleado || null;
+            let horas = req.body.horas || 0;
+            let minutos = req.body.minutos || 0;
+
+			let arrayIns = [id, id_empleado, horas, minutos, req.body.fecha];
+			connection.query("CALL compensatorios_update(?)",  [arrayIns], function (err, result) {
+				if (err) return res.json({ success: 0, error_msj: err.message, err });
+				res.json({ success: 1, result });
+			})
+		} else {
+			res.json({ success: 0, error_msj: "el id de la tabla de compensatorios no esta ingresado" })
+
+		}
+	});
+
+
 }
