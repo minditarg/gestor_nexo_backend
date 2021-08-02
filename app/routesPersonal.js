@@ -177,9 +177,10 @@ module.exports = function (app,connection, passport) {
     });
 
     app.post('/insert-controlfaltas', bodyJson, checkConnection, (req, res, next) => { general.checkPermission(req, res, next, [91], connection) }, function (req, res) {
-		let id_tipo_empleado = req.body.id_tipo_empleado || null;
-        var arrayIns = [req.body.nombre, req.body.apellido, req.body.dni, req.body.telefono, req.body.direccion, id_tipo_empleado, req.body.mail, 1];
-		connection.query("CALL empleados_insertar(?)",  [arrayIns], function (err, result) {
+		let id_empleado = req.body.id_empleado || null;
+		let id_tipo_falta = req.body.id_tipo_falta || null;
+        var arrayIns = [id_empleado, id_tipo_falta, req.body.inicio_licencia, req.body.fin_licencia, 1];
+		connection.query("CALL control_faltas_insertar(?)",  [arrayIns], function (err, result) {
 			if (err) return res.json({ success: 0, error_msj: err.message, err });
 			res.json({ success: 1, result });
 		})
@@ -189,20 +190,20 @@ module.exports = function (app,connection, passport) {
 		if (req.body.id) {
 			var id = parseInt(req.body.id);
 			var objectoUpdate = { estado: 0 };
-			connection.query("UPDATE empleados SET ? where id = ?", [objectoUpdate, id], function (err, result) {
-				if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar actualizar la tabla de empleados", err });
+			connection.query("UPDATE control_faltas SET ? where id = ?", [objectoUpdate, id], function (err, result) {
+				if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar actualizar la tabla de control de faltas", err });
 				res.json({ success: 1, result });
 			});
 
 		} else {
-			res.json({ success: 0, error_msj: "el id de la tabla empleados no esta ingresado" })
+			res.json({ success: 0, error_msj: "el id de la tabla control de faltas no esta ingresado" })
 
 		}
 	});
 
     app.get('/list-controlfaltas/:id', checkConnection, function (req, res) {
 		var id = req.params.id;
-		connection.query("SELECT * FROM empleados WHERE id = ? AND estado > 0", [id], function (err, result) {
+		connection.query("SELECT * FROM control_faltas WHERE id = ? AND estado > 0", [id], function (err, result) {
 			if (err) return res.json({ success: 0, error_msj: err });
 			res.json({ success: 1, result });
 		});
@@ -211,16 +212,11 @@ module.exports = function (app,connection, passport) {
 	app.post('/update-controlfalta', bodyJson, checkConnection, (req, res, next) => { general.checkPermission(req, res, next, [91], connection) }, function (req, res) {
 		if (req.body.id) {
 			let id = req.body.id || null;
-			let nombre = req.body.nombre || null;
-            let apellido = req.body.apellido || null;
-            let dni = req.body.dni || null;
-            let telefono = req.body.telefono || null;
-            let direccion = req.body.direccion || null;
-            let id_tipo_empleado = req.body.id_tipo_empleado || null;
-            let mail = req.body.mail || null;
+			let id_empleado = req.body.id_empleado || null;
+			let id_tipo_falta = req.body.id_tipo_falta || null;
 
-			let arrayIns = [id, nombre, apellido, dni, telefono, direccion, id_tipo_empleado, mail];
-			connection.query("CALL empleados_update(?)",  [arrayIns], function (err, result) {
+			let arrayIns = [id, id_empleado, id_tipo_falta, req.body.inicio_licencia, req.body.fin_licencia];
+			connection.query("CALL control_faltas_update(?)",  [arrayIns], function (err, result) {
 				if (err) return res.json({ success: 0, error_msj: err.message, err });
 				res.json({ success: 1, result });
 			})
@@ -254,6 +250,63 @@ module.exports = function (app,connection, passport) {
 				res.json({ success: 1, result });
 			}
 		})
+	});
+
+	app.post('/insert-archivo/:id/:nombre_foto', function (req, res) {
+
+		var id = req.params.id;
+		var nombre_foto = req.params.nombre_foto;
+
+		var multer = require('multer');
+		var storage = multer.diskStorage({
+			destination: function (req, file, callback) {
+
+				callback(null, './' + process.env.UPLOAD_PATH + '/archivos/archivo/' + id);
+			},
+			filename: function (req, file, callback) {
+				console.log(file);
+				callback(null, file.originalname);
+			}
+		});
+		var upload = multer({ storage: storage }).single('archivo');
+
+		console.log(req);
+		mkdirp.sync(path.join(__dirname, '../' + process.env.UPLOAD_PATH + '/archivos/archivo/' + id));
+
+
+		upload(req, res, function (err) {
+			if (err) return res.status(500).send(err);
+
+
+			if (req.params.id) {
+				var id = parseInt(req.params.id);
+				var objectoUpdate = { archivo: path.join('/' + process.env.UPLOAD_PATH + '/archivos/archivo/' + id + "/" + nombre_foto) };
+				connection.query("UPDATE control_faltas SET ? where id = ?", [objectoUpdate, id], function (err, result) {
+
+					if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar modificar los datos de la operacion", err });
+					res.json({ success: 1, result });
+				})
+			} else {
+				res.json({ success: 0, error_msj: "el id de la tabla operaciones no esta ingresado" })
+			}
+
+		});
+
+
+	});
+
+	app.post('/delete-archivo', bodyJson, checkConnection, function (req, res) {
+
+		if (req.body.id) {
+			var id = parseInt(req.body.id);
+			var objectoUpdate = { archivo: null };
+			connection.query("UPDATE control_faltas SET ? where id = ?", [objectoUpdate, id], function (err, result) {
+				if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar actualizar la tabla de operaciones", err });
+				res.json({ success: 1, result });
+			});
+		} else {
+			res.json({ success: 0, error_msj: "el id de la tabla de operaciones no esta ingresado" })
+		}
 	});
 
 	/********************************* */
