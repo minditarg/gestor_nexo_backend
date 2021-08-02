@@ -59,11 +59,12 @@ module.exports = function(passport,connection) {
                         username: username,
                         password: bcrypt.hashSync(password, null, null),
                         nombre: req.body.nombre,
-                        id_users_type : req.body.id_users_type // use the generateHash function in our user model
+                        id_users_type : req.body.id_users_type, // use the generateHash function in our user model
+                        id_empleado : req.body.id_empleado
                     };
 
-                    var insertQuery = "INSERT INTO users ( username, password,nombre,id_users_type ) values (?,?,?,?)";
-                    connection.query(insertQuery,[newUserMysql.username, newUserMysql.password,newUserMysql.nombre,newUserMysql.id_users_type],function(err, rows) {
+                    var insertQuery = "INSERT INTO users ( username, password,nombre,id_users_type, id_empleado ) values (?,?,?,?,?)";
+                    connection.query(insertQuery,[newUserMysql.username, newUserMysql.password,newUserMysql.nombre,newUserMysql.id_users_type,newUserMysql.id_empleado],function(err, rows) {
                         newUserMysql.id = rows.insertId;
 
                         return done(null, newUserMysql);
