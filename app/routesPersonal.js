@@ -373,5 +373,28 @@ module.exports = function (app,connection, passport) {
 		}
 	});
 
+	/********************************* */
+    /*COMPENSATORIOS/FALTAS EMPLEADOS*/
+    /********************************* */
+
+	app.get('/list-compensatorios-empleados', isLoggedIn, checkConnection, function (req, res) {
+
+		let idUser = (req.user && req.user.id) || null;
+		var arrayIns = [idUser];
+        connection.query("CALL compensatorios_empleados_listar(?)", [arrayIns], function (err, result) {
+            if (err) return res.json({ success: 0, error_msj: err });
+            res.json({ success: 1, result });
+        });
+    });
+
+	app.get('/list-controlfaltas-empleados', isLoggedIn, checkConnection, function (req, res) {
+        
+		let idUser = (req.user && req.user.id) || null;
+		var arrayIns = [idUser];
+        connection.query("CALL control_faltas_empleados_listar(?)", [arrayIns], function (err, result) {
+            if (err) return res.json({ success: 0, error_msj: err });
+            res.json({ success: 1, result });
+        });
+    });
 
 }
