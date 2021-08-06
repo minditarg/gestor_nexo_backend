@@ -91,7 +91,7 @@ module.exports = function (app,connection, passport) {
     /********************************* */
 
     app.get('/list-empleados', isLoggedIn, checkConnection, function (req, res) {
-        connection.query("SELECT e.*, te.descripcion as 'tipoempleado' FROM empleados e INNER JOIN tipos_empleados te ON e.id_tipo_empleado = te.id WHERE e.estado = 1", function (err, result) {
+        connection.query("SELECT e.*, te.descripcion as 'tipoempleado' FROM empleados e INNER JOIN tipos_empleados te ON e.id_tipo_empleado = te.id WHERE e.estado = 1 order by e.apellido, e.nombre", function (err, result) {
             if (err) return res.json({ success: 0, error_msj: err });
             res.json({ success: 1, result });
         });
@@ -396,5 +396,44 @@ module.exports = function (app,connection, passport) {
             res.json({ success: 1, result });
         });
     });
+	
+	app.get('/list-faltas-empleados', isLoggedIn, checkConnection, function (req, res) {
+        
+        connection.query("CALL faltas_por_empleados_listar()", [], function (err, result) {
+            if (err) return res.json({ success: 0, error_msj: err });
+            res.json({ success: 1, result });
+        });
+    });
+
+	/********************************* */
+    /*        EMPLEADOS USERS          */
+    /********************************* */
+
+	app.get('/list-empleado-user', checkConnection, function (req, res) {
+
+		connection.query("SELECT e.* FROM empleados e LEFT JOIN users u ON u.id_empleado = e.id WHERE u.id_empleado IS NULL AND e.estado = 1 ORDER BY e.apellido, e.nombre", function (err, result) {
+			if (err) {
+				return res.json({ success: 0, error_msj: err });
+			}
+			else {
+
+				res.json({ success: 1, result });
+			}
+		})
+	});
+
+	app.get('/list-empleado-edit-user/:iduser', checkConnection, function (req, res) {
+
+		var iduser = req.params.iduser;
+		connection.query("CALL edit_empleados_listar(?)", [iduser], function (err, result) {
+			if (err) {
+				return res.json({ success: 0, error_msj: err });
+			}
+			else {
+
+				res.json({ success: 1, result });
+			}
+		})
+	});
 
 }
