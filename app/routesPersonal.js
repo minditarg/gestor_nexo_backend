@@ -405,6 +405,14 @@ module.exports = function (app,connection, passport) {
         });
     });
 
+	app.get('/list-compensatorios-gestion', isLoggedIn, checkConnection, function (req, res) {
+        
+        connection.query("CALL list_compensatorios_empleados_gestion()", [], function (err, result) {
+            if (err) return res.json({ success: 0, error_msj: err });
+            res.json({ success: 1, result });
+        });
+    });
+
 	/********************************* */
     /*        EMPLEADOS USERS          */
     /********************************* */
