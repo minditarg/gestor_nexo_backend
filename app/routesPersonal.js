@@ -425,7 +425,7 @@ module.exports = function (app,connection, passport) {
 	app.get('/list-empleado-edit-user/:iduser', checkConnection, function (req, res) {
 
 		var iduser = req.params.iduser;
-		connection.query("CALL edit_empleados_listar(?)", [iduser], function (err, result) {
+		connection.query("CALL edit_user_empleados_listar(?)", [iduser], function (err, result) {
 			if (err) {
 				return res.json({ success: 0, error_msj: err });
 			}
