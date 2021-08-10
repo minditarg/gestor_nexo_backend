@@ -301,8 +301,8 @@ module.exports = function (app,connection, passport) {
 
 			if (req.body.id) {
 				var id_users = parseInt(req.body.id);
-				let id_empleado = req.body.id_empleado || null;
-				var objectoUpdate = { nombre: req.body.nombre, id_users_type: req.body.id_users_type, id_empleado };
+				//let id_empleado = req.body.id_empleado || null;
+				var objectoUpdate = { nombre: req.body.nombre, id_users_type: req.body.id_users_type/*, id_empleado*/ };
 				connection.query("UPDATE users SET ? where id = ?", [objectoUpdate, id_users], function (err, result) {
 					if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar actualizar users", err });
 					res.json({ success: 1, result });

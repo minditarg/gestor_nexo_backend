@@ -47,6 +47,7 @@ module.exports = function(passport,connection) {
             // find a user whose email is the same as the forms email
             // we are checking to see if the user trying to login already exists
             checkConnection();
+            console.log("local-signup");
             connection.query("SELECT * FROM users WHERE username = ? AND activo = 1",[username], function(err, rows) {
                 if (err)
                     return done(err);
@@ -60,10 +61,10 @@ module.exports = function(passport,connection) {
                         password: bcrypt.hashSync(password, null, null),
                         nombre: req.body.nombre,
                         id_users_type : req.body.id_users_type, // use the generateHash function in our user model
-                        id_empleado : req.body.id_empleado
+                       // id_empleado : req.body.id_empleado
                     };
 
-                    var insertQuery = "INSERT INTO users ( username, password,nombre,id_users_type, id_empleado ) values (?,?,?,?,?)";
+                    var insertQuery = "INSERT INTO users ( username, password,nombre,id_users_type) values (?,?,?,?)";
                     connection.query(insertQuery,[newUserMysql.username, newUserMysql.password,newUserMysql.nombre,newUserMysql.id_users_type,newUserMysql.id_empleado],function(err, rows) {
                         newUserMysql.id = rows.insertId;
 
