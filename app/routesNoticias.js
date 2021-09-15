@@ -161,6 +161,7 @@ module.exports = function (app, connection, passport) {
   app.post('/insert-noticia', bodyJson, function (req, res) {
     let nombre = req.body.nombre || null;
     let descripcion = req.body.descripcion || null;
+    let creador = req.body.creador || null;
     let idTipoNoticia = req.body.idTipoNoticia || null;
     let idTipoCategoria = req.body.idTipoCategoria || null;
     let idUser = (req.user && req.user.id) || null;
@@ -177,7 +178,7 @@ module.exports = function (app, connection, passport) {
 
 
     try {
-      connection.query("CALL noticias_insert(?)", [[nombre, descripcion, idTipoNoticia, idTipoCategoria, idUser, fechaInicio, fechaFinalizacion, contenido, estado, destacado, principal,id_categoria_personal,id_categoria_transparente]], function (err, resultInsert) {
+      connection.query("CALL noticias_insert(?)", [[nombre, descripcion, idTipoNoticia, idTipoCategoria, idUser, fechaInicio, fechaFinalizacion, contenido, estado, destacado, principal,id_categoria_personal,id_categoria_transparente, creador]], function (err, resultInsert) {
         if (err) return res.status(500).send(err.sqlMessage);
         if (tags.length > 0) {
 
@@ -230,11 +231,12 @@ module.exports = function (app, connection, passport) {
     let principal = req.body.principal || null;
     let id_categoria_personal = req.body.id_categoria_personal || null;
     let id_categoria_transparente = req.body.id_categoria_transparente || null;
+    let creador = req.body.creador || null;
 
 
     let tags = req.body.tags || [];
     try {
-      connection.query("CALL noticias_update(?)", [[idNoticia, nombre, descripcion, idTipoNoticia, idTipoCategoria, fechaInicio, fechaFinalizacion, contenido, estado, destacado, principal,id_categoria_personal,id_categoria_transparente]], function (err, resultUpdate) {
+      connection.query("CALL noticias_update(?)", [[idNoticia, nombre, descripcion, idTipoNoticia, idTipoCategoria, fechaInicio, fechaFinalizacion, contenido, estado, destacado, principal,id_categoria_personal,id_categoria_transparente, creador]], function (err, resultUpdate) {
         if (err) return res.status(500).send(err.sqlMessage);
 
         connection.query("DELETE FROM tags WHERE id_noticia = ?", [idNoticia], function (err, resultDelete) {
@@ -276,7 +278,7 @@ module.exports = function (app, connection, passport) {
     let principal = req.body.principal || null;
     let id_categoria_personal = req.body.idCategoriaPersonal || null;
     let id_categoria_transparente = req.body.idCategoriaTransparente || null;
-
+    let creador = req.body.creador || null;
 
     let tags = req.body.tags || [];
     try {
@@ -287,7 +289,7 @@ module.exports = function (app, connection, passport) {
           return res.status(500).send("no esta autorizado para modificar la noticia");
 
 
-        connection.query("CALL noticias_update(?)", [[idNoticia, nombre, descripcion, idTipoNoticia, idTipoCategoria, fechaInicio, fechaFinalizacion, contenido, estado, destacado, principal,id_categoria_personal,id_categoria_transparente]], function (err, resultUpdate) {
+        connection.query("CALL noticias_update(?)", [[idNoticia, nombre, descripcion, idTipoNoticia, idTipoCategoria, fechaInicio, fechaFinalizacion, contenido, estado, destacado, principal,id_categoria_personal,id_categoria_transparente, creador]], function (err, resultUpdate) {
           if (err) return res.status(500).send(err.sqlMessage);
 
           connection.query("DELETE FROM tags WHERE id_noticia = ?", [idNoticia], function (err, resultDelete) {
